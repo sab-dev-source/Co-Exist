@@ -1,9 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // Three.js WebGL contexts, GSAP ScrollTrigger pins, and Lenis are imperative DOM runtimes;
+  // disabling StrictMode prevents double-mounting WebGL canvases in dev.
+  reactStrictMode: false,
+  images: {
+    unoptimized: true,
+  },
   turbopack: {
     rules: {
       "*.css": {

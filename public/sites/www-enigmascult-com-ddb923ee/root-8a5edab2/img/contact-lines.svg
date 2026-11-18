@@ -1,0 +1,15 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 1921.5 4234" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Lines">
+<line id="Line 23" opacity="0.3" x1="1.5" y1="489.75" x2="1921.5" y2="489.75" stroke="var(--stroke-0, white)" stroke-width="0.5"/>
+<g id="Ellipse 14" opacity="0.15">
+<path d="M1920.5 10C1920.5 540.193 1490.69 970 960.5 970C430.307 970 0.5 540.193 0.5 10" stroke="var(--stroke-0, white)"/>
+<path d="M1920.5 10C1920.5 540.193 1490.69 970 960.5 970C430.307 970 0.5 540.193 0.5 10" stroke="var(--stroke-1, white)"/>
+</g>
+<g id="Ellipse 15" opacity="0.15">
+<path d="M0.5 970C0.5 439.807 430.307 10 960.5 10C1490.69 10 1920.5 439.807 1920.5 970" stroke="var(--stroke-0, white)"/>
+<path d="M0.5 970C0.5 439.807 430.307 10 960.5 10C1490.69 10 1920.5 439.807 1920.5 970" stroke="var(--stroke-1, white)"/>
+</g>
+<line id="Line 45" opacity="0.15" x1="1791.75" y1="7" x2="1791.75" y2="4222" stroke="var(--stroke-0, white)" stroke-width="0.5"/>
+<line id="Line 46" opacity="0.15" x1="128.75" y1="1.09278e-08" x2="128.75" y2="4234" stroke="var(--stroke-0, white)" stroke-width="0.5"/>
+</g>
+</svg>
