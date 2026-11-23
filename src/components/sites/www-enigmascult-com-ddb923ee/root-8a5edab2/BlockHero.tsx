@@ -483,8 +483,8 @@ export function BlockHero() {
       <p className="block-hero__tagline">Created from stunners, for stunners.</p>
       <a
         className="block-hero__cta"
-        href="/mystery-boxes/"
-        aria-label="Forge Yours — Mystery Boxes"
+        href="#karachi-chapter"
+        aria-label="Forge Yours — Karachi Chapter"
       >
         Forge Yours
       </a>

@@ -9,15 +9,12 @@ import { ClueAndRitual } from "./ClueAndRitual";
 import { CursorRing } from "./CursorRing";
 import { FindPriceSection } from "./FindPriceSection";
 import { HomePreloader } from "./HomePreloader";
-import { LatestRebornSection } from "./LatestRebornSection";
 import { ManifestoSection } from "./ManifestoSection";
 import { MysteryBoxSection } from "./MysteryBoxSection";
 import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
-import { SiteMenu } from "./SiteMenu";
 import { SoundAndCookies } from "./SoundAndCookies";
 import { TopSneakersSection } from "./TopSneakersSection";
-import { TrendingAuctionsSection } from "./TrendingAuctionsSection";
 
 declare global {
   interface Window {
@@ -85,14 +82,11 @@ export function EnigmaHomeClient() {
           <MysteryBoxSection />
           <FindPriceSection />
           <TopSneakersSection />
-          <TrendingAuctionsSection />
-          <LatestRebornSection />
         </div>
       </main>
 
       <SiteFooter />
 
-      <SiteMenu />
       <ClueAndRitual />
       <SoundAndCookies />
       <HomePreloader />

@@ -115,9 +115,9 @@ export function ManifestoSection() {
           </p>
           <h2 className="manifesto__title">Mini Manifesto</h2>
           <p className="manifesto__text manifesto__text--side">
-            Enigma is a fashion cult that guards the flame of true hype.
+            Co-Exist is a fashion cult that guards the flame of true hype.
           </p>
-          <a className="manifesto__cta" href="/mission/">
+          <a className="manifesto__cta" href="#karachi-chapter">
             Meet the Cult
           </a>
         </div>
@@ -126,21 +126,21 @@ export function ManifestoSection() {
           <img
             className="manifesto__img manifesto__img--art2"
             src={SITE_ASSETS.pageImg.manifestoArt2}
-            alt=""
+            alt="021 Wat-Tawa — Karachi street chai heritage"
             loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--art5"
             src={SITE_ASSETS.pageImg.manifestoArt5}
-            alt=""
+            alt="Co-Exist Heritage Threads Drop 03 collection rack"
             loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--pill"
             src={SITE_ASSETS.pageImg.manifestoPill}
-            alt=""
+            alt="Midnight Dhaba KHI 021 circular seal"
             loading="lazy"
             decoding="async"
           />
@@ -148,7 +148,7 @@ export function ManifestoSection() {
             Plugged in with resellers worldwide who don’t believe in gatekeeping, and collectors whose closets tell stories worth a fortune.
           </p>
           <h2 className="manifesto__title">Honor the Grind</h2>
-          <a className="manifesto__cta" href="/mystery-boxes">
+          <a className="manifesto__cta" href="#mystery-box">
             Join the Circle
           </a>
           <p className="manifesto__text manifesto__text--b2">
@@ -170,29 +170,29 @@ export function ManifestoSection() {
           <img
             className="manifesto__img manifesto__img--yellow"
             src={SITE_ASSETS.pageImg.manifestoYellow}
-            alt=""
+            alt="Co-Exist 021-RAW monochrome portrait"
             loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--dunk"
             src={SITE_ASSETS.pageImg.manifestoGreenDunk}
-            alt=""
+            alt="Unapologetically 021 heavyweight tee and hoodie details"
             loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--bacchus"
             src={SITE_ASSETS.pageImg.manifestoBacchus}
-            alt=""
+            alt="Unapologetically 021 classical angel sculpture graphic"
             loading="lazy"
             decoding="async"
           />
           <p className="manifesto__text manifesto__text--c-intro">
-            Limited drops of curated designer mystery boxes, live auctions and artists&apos; customs — all in one place.
+            Limited drops of curated mystery boxes and Karachi Chapter silhouettes — all in one place.
           </p>
           <h2 className="manifesto__title">Rarity Is Philosophy</h2>
-          <a className="manifesto__cta" href="/shop">
+          <a className="manifesto__cta" href="#karachi-chapter-grid">
             See the Drops
           </a>
         </div>

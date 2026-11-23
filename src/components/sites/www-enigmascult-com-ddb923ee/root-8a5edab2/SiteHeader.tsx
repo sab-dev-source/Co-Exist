@@ -8,7 +8,7 @@ import {
   hasWebGL,
   watchContextLoss,
 } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/threeLoader";
-import { SITE_ASSETS, UTILITY_LINKS } from "./data";
+import { SITE_ASSETS } from "./data";
 
 export function SiteHeader() {
   const logoLinkRef = useRef<HTMLAnchorElement>(null);
@@ -93,7 +93,7 @@ export function SiteHeader() {
       meshH = size.y || 0.42;
       mesh.position.sub(center);
 
-      const fit = 0.535;
+      const fit = 0.625;
       let prevW = 0;
       let prevH = 0;
       let needsRender = true;
@@ -250,10 +250,10 @@ export function SiteHeader() {
           ref={logoLinkRef}
           className="site-header__logo"
           href="/"
-          aria-label="Enigma"
+          aria-label="Co-Exist"
         >
           <span ref={fallbackRef} className="site-header__logo-wordmark">
-            ENIGMA
+            CO-EXIST
           </span>
           <canvas
             ref={canvasRef}
@@ -270,20 +270,6 @@ export function SiteHeader() {
             }}
           />
         </a>
-        <nav className="site-header__nav" aria-label="Utility">
-          <ul>
-            {UTILITY_LINKS.map((link) => (
-              <li key={link.href}>
-                <a href={link.href}>
-                  {link.label}
-                  {link.href === "/cart/" ? (
-                    <span className="site-header__cart-count" />
-                  ) : null}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
       </div>
     </header>
   );

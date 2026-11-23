@@ -4,9 +4,9 @@ import "./globals.css";
 const SHARED_ICONS = "/sites/www-enigmascult-com-ddb923ee/shared/icons";
 
 export const metadata: Metadata = {
-  title: "Enigma – Sneaker Auctions, Mystery Boxes & Reborn Customs",
+  title: "Co-Exist – Karachi Chapter, Mystery Boxes & Streetwear Silhouettes",
   description:
-    "Enigma is the cult of authenticated streetwear: live sneaker auctions, style-coded mystery boxes and Reborn customs. Decode your style. Join the circle.",
+    "Co-Exist is Karachi's cult of heavyweight streetwear silhouettes, style-coded mystery boxes, and 021 heritage drops. Decode your style. Join the Inner Circle.",
   icons: {
     icon: [
       { url: `${SHARED_ICONS}/cropped-gradient-32x32.png`, sizes: "32x32" },
@@ -15,12 +15,12 @@ export const metadata: Metadata = {
     apple: [{ url: `${SHARED_ICONS}/cropped-gradient-180x180.png` }],
   },
   openGraph: {
-    title: "Enigma – Sneaker Auctions, Mystery Boxes & Reborn Customs",
+    title: "Co-Exist – Karachi Chapter, Mystery Boxes & Streetwear Silhouettes",
     description:
-      "Enigma is the cult of authenticated streetwear: live sneaker auctions, style-coded mystery boxes and Reborn customs. Decode your style. Join the circle.",
+      "Co-Exist is Karachi's cult of heavyweight streetwear silhouettes, style-coded mystery boxes, and 021 heritage drops. Decode your style. Join the Inner Circle.",
     type: "website",
     locale: "en_US",
-    siteName: "Enigma",
+    siteName: "Co-Exist",
   },
   twitter: {
     card: "summary_large_image",

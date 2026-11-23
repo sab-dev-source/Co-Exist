@@ -79,7 +79,7 @@ export function MysteryBoxSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="mystery-box alignfull">
+    <section ref={sectionRef} id="mystery-box" className="mystery-box alignfull">
       <img
         className="mystery-box__chest"
         src={SITE_ASSETS.pageImg.mysteryChest}
@@ -87,7 +87,7 @@ export function MysteryBoxSection() {
         loading="lazy"
         decoding="async"
       />
-      <a className="mystery-box__cta" href="/mystery-boxes/">
+      <a className="mystery-box__cta" href="#inner-circle">
         Join the inner circle
       </a>
       <div ref={coverTopRef} className="mystery-box__cover mystery-box__cover--top">

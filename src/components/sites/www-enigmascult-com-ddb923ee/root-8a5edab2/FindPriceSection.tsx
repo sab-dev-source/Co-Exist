@@ -124,8 +124,8 @@ export function FindPriceSection() {
           decoding="async"
         />
       </div>
-      <h2 className="find-price__title">{"Find it at\nmy price"}</h2>
-      <a ref={barRef} className="find-price__bar" href="/find-it-at-my-price/">
+      <h2 className="find-price__title">{"Sign up for\nearly access"}</h2>
+      <a ref={barRef} className="find-price__bar" href="#inner-circle">
         <span className="find-price__query">{displayQuery}</span>
         <span className="find-price__caret" aria-hidden="true" />
         <img
@@ -137,7 +137,7 @@ export function FindPriceSection() {
         />
       </a>
       <p className="find-price__tagline">
-        {"You set the price.\nWe hunt the item.\nNo raffles. No Ls. Just results."}
+        {"Updates on drops and exclusive meetups."}
       </p>
     </section>
   );

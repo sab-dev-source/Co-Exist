@@ -18,7 +18,7 @@ import {
 } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/threeLoader";
 import { CLUE_TEXTS, RITUAL_LINES, SITE_ASSETS } from "./data";
 
-const SECRET_WORD = "enigma";
+const SECRET_WORDS = ["coexist", "co-exist", "enigma"] as const;
 const BLESSED_STORAGE_KEY = "enigma-blessed";
 const REWARD_STORAGE_KEY = "enigma-reward";
 const KEY_TIMEOUT_MS = 2000;
@@ -143,9 +143,9 @@ export function ClueAndRitual() {
     }
   }, []);
 
-  // Global keydown listener matching sequential typing of "enigma"
+  // Global keydown listener matching sequential typing of "coexist", "co-exist", or "enigma"
   useEffect(() => {
-    let matchIndex = 0;
+    let buffer = "";
     let lastKeyAt = 0;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -162,19 +162,16 @@ export function ClueAndRitual() {
 
       const now = performance.now();
       if (now - lastKeyAt > KEY_TIMEOUT_MS) {
-        matchIndex = 0;
+        buffer = "";
       }
       lastKeyAt = now;
 
       const ch = (e.key || "").toLowerCase();
-      if (ch === SECRET_WORD[matchIndex]) {
-        matchIndex += 1;
-        if (matchIndex === SECRET_WORD.length) {
-          matchIndex = 0;
-          triggerRitual();
-        }
-      } else {
-        matchIndex = ch === SECRET_WORD[0] ? 1 : 0;
+      if (ch.length !== 1) return;
+      buffer = (buffer + ch).slice(-12);
+      if (SECRET_WORDS.some((w) => buffer.endsWith(w))) {
+        buffer = "";
+        triggerRitual();
       }
     };
 
@@ -446,7 +443,8 @@ export function ClueAndRitual() {
       const nextVal = e.target.value;
       setCoarseValue(nextVal);
       resetHintTimer(true);
-      if (nextVal.trim().toLowerCase() === SECRET_WORD) {
+      const normalized = nextVal.trim().toLowerCase();
+      if (SECRET_WORDS.some((w) => normalized === w)) {
         e.target.blur();
         setHintOpen(false);
         setCoarseValue("");

@@ -547,9 +547,9 @@ export function SiteFooter() {
     <footer className="wp-block-template-part">
       <div className="site-footer">
         <div ref={cloudsRef} className="site-footer__clouds" aria-hidden="true" />
-        <div className="site-footer__newsletter">
-          <h2 className="site-footer__heading" data-graffiti="Updates for the OG’s">
-            Updates for the OG’s
+        <div id="inner-circle" className="site-footer__newsletter">
+          <h2 className="site-footer__heading" data-graffiti="Inner Circle">
+            Inner Circle
           </h2>
           <div className="site-footer__form site-footer__form--wpforms">
             <div className="wpforms-container wpforms-container-full" id="wpforms-215">
@@ -608,7 +608,7 @@ export function SiteFooter() {
                       id="wpforms-submit-215"
                       className="wpforms-submit"
                     >
-                      Sign up to the OG list
+                      Sign up for early access & updates
                     </button>
                   </div>
                 </form>
@@ -625,7 +625,7 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
-          <p className="site-footer__copyright">©Enigma 2026 All Rights Reserved</p>
+          <p className="site-footer__copyright">©Co-Exist 2026 All Rights Reserved</p>
           <ul className="site-footer__socials">
             {SOCIAL_LINKS.map((item) => (
               <li key={item.href}>
@@ -670,13 +670,22 @@ export function SiteFooter() {
             Cookie Settings
           </button>
           <p className="site-footer__credit">
-            Created by{" "}
+            <span>Created by</span>
             <a
-              href="https://www.ruler.agency"
+              className="site-footer__credit-brand"
+              href="https://thinklimitless.co/"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Created by Limitless — visit thinklimitless.co"
             >
-              Ruler
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="site-footer__credit-logo"
+                src={SITE_ASSETS.icons.limitlessLogo}
+                alt=""
+                aria-hidden="true"
+              />
+              <span>Limitless</span>
             </a>
           </p>
         </div>

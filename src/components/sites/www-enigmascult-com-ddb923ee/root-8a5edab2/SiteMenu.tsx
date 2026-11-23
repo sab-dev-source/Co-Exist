@@ -688,6 +688,7 @@ export function SiteMenu() {
               >
                 <a
                   href={item.href}
+                  onClick={() => setOpen(false)}
                   onPointerEnter={() => handleItemEnter(item)}
                   onPointerLeave={stopHoverSfx}
                 >
