@@ -2539,13 +2539,15 @@ body.home .entry-content > * {
   cursor: pointer;
   display: grid;
   font-family: var(--wp--preset--font-family--heading);
-  font-size: clamp(13px, 0.9375vw, 18px);
-  height: clamp(38px, 2.5vw, 48px);
-  max-width: 100%;
-  padding: 0;
+  font-size: clamp(12px, 0.85vw, 15px);
+  height: auto;
+  line-height: 1.2;
+  max-width: min(100%, 92vw);
+  min-height: clamp(46px, 3vw, 56px);
+  padding: 12px 30px;
   place-items: center;
   text-transform: uppercase;
-  width: clamp(220px, 15.6770833333vw, 301px);
+  width: clamp(275px, 24vw, 390px);
 }
 .site-footer__form--wpforms em.wpforms-error {
   color: #fb5711;
