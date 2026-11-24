@@ -88,12 +88,28 @@ export function CursorRing() {
     let oy = -100;
     let isOn = false;
     let magneticEl: HTMLElement | null = null;
+    let magneticRect: DOMRect | null = null;
     let rafId = 0;
 
     const resetMagnetic = () => {
       if (magneticEl) {
         magneticEl.style.translate = "";
         magneticEl = null;
+        magneticRect = null;
+      }
+    };
+
+    const refreshMagneticRect = () => {
+      if (magneticEl && magneticEl.isConnected) {
+        magneticRect = magneticEl.getBoundingClientRect();
+      } else {
+        magneticRect = null;
+      }
+    };
+
+    const ensureLoop = () => {
+      if (!rafId) {
+        rafId = window.requestAnimationFrame(tick);
       }
     };
 
@@ -102,8 +118,11 @@ export function CursorRing() {
       my = e.clientY;
       if (!isOn) {
         isOn = true;
+        ox = mx;
+        oy = my;
         ring.classList.add("is-on");
       }
+      ensureLoop();
     };
 
     const onPointerDown = () => {
@@ -139,6 +158,7 @@ export function CursorRing() {
           magneticEl.style.translate = "";
         }
         magneticEl = nextMagnetic;
+        magneticRect = nextMagnetic ? nextMagnetic.getBoundingClientRect() : null;
       }
 
       const cursorTarget = target?.closest("[data-cursor]");
@@ -155,32 +175,38 @@ export function CursorRing() {
     };
 
     const tick = () => {
-      ox += LERP_FACTOR * (mx - ox);
-      oy += LERP_FACTOR * (my - oy);
+      rafId = 0;
+      const dxRing = mx - ox;
+      const dyRing = my - oy;
+      ox += LERP_FACTOR * dxRing;
+      oy += LERP_FACTOR * dyRing;
       ring.style.translate = `${ox}px ${oy}px`;
 
-      if (magneticEl) {
+      if (magneticEl && magneticRect) {
         if (!magneticEl.isConnected) {
           magneticEl = null;
+          magneticRect = null;
         } else {
-          const rect = magneticEl.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
+          const cx = magneticRect.left + magneticRect.width / 2;
+          const cy = magneticRect.top + magneticRect.height / 2;
           const dx = mx - cx;
           const dy = my - cy;
 
-          if (Math.abs(dx) < rect.width && Math.abs(dy) < rect.height) {
+          if (Math.abs(dx) < magneticRect.width && Math.abs(dy) < magneticRect.height) {
             const tx = Math.max(-6, Math.min(6, 0.12 * dx));
             const ty = Math.max(-4, Math.min(4, 0.12 * dy));
             magneticEl.style.translate = `${tx}px ${ty}px`;
           } else {
             magneticEl.style.translate = "";
             magneticEl = null;
+            magneticRect = null;
           }
         }
       }
 
-      rafId = window.requestAnimationFrame(tick);
+      if (isOn && (Math.abs(mx - ox) > 0.08 || Math.abs(my - oy) > 0.08)) {
+        rafId = window.requestAnimationFrame(tick);
+      }
     };
 
     document.addEventListener("pointermove", onPointerMove, { passive: true });
@@ -190,15 +216,15 @@ export function CursorRing() {
     document.addEventListener("pointerleave", onPointerLeave);
     document.documentElement.addEventListener("pointerleave", onPointerLeave);
     window.addEventListener("blur", onPointerLeave);
+    window.addEventListener("scroll", refreshMagneticRect, { passive: true });
+    window.addEventListener("resize", refreshMagneticRect, { passive: true });
     document.addEventListener("pointerover", onPointerOver, { passive: true });
     document.addEventListener("enigma:blessed", onBlessed);
     window.addEventListener("enigma:blessed", onBlessed);
     window.addEventListener("storage", onStorage);
 
-    rafId = window.requestAnimationFrame(tick);
-
     return () => {
-      window.cancelAnimationFrame(rafId);
+      if (rafId) window.cancelAnimationFrame(rafId);
       document.documentElement.classList.remove("has-cursor");
       document.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("pointerdown", onPointerDown);
@@ -207,6 +233,8 @@ export function CursorRing() {
       document.removeEventListener("pointerleave", onPointerLeave);
       document.documentElement.removeEventListener("pointerleave", onPointerLeave);
       window.removeEventListener("blur", onPointerLeave);
+      window.removeEventListener("scroll", refreshMagneticRect);
+      window.removeEventListener("resize", refreshMagneticRect);
       document.removeEventListener("pointerover", onPointerOver);
       document.removeEventListener("enigma:blessed", onBlessed);
       window.removeEventListener("enigma:blessed", onBlessed);

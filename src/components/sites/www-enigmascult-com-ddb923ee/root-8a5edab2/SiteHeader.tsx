@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { playOneShotSfx } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import {
   disposeThreeScene,
   getGLTFLoader,
@@ -14,6 +15,7 @@ export function SiteHeader() {
   const logoLinkRef = useRef<HTMLAnchorElement>(null);
   const fallbackRef = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastShimmerRef = useRef(0);
 
   useEffect(() => {
     const logoLink = logoLinkRef.current;
@@ -36,8 +38,9 @@ export function SiteHeader() {
         canvas,
         antialias: true,
         alpha: true,
+        powerPreference: "high-performance",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       scene = new THREE.Scene();
@@ -125,6 +128,12 @@ export function SiteHeader() {
       window.addEventListener("resize", resize, { passive: true });
       cleanups.push(() => window.removeEventListener("resize", resize));
 
+      if (typeof ResizeObserver !== "undefined") {
+        const ro = new ResizeObserver(resize);
+        ro.observe(logoLink);
+        cleanups.push(() => ro.disconnect());
+      }
+
       const revealRaf = requestAnimationFrame(reveal);
       cleanups.push(() => cancelAnimationFrame(revealRaf));
 
@@ -149,10 +158,12 @@ export function SiteHeader() {
       let lastX = 0;
       let dragVel = 0;
       let dragDist = 0;
+      let spinWhooshPlayed = false;
 
       const onPointerDown = (e: PointerEvent) => {
         dragging = true;
         dragDist = 0;
+        spinWhooshPlayed = false;
         lastX = e.clientX;
         dragVel = 0;
       };
@@ -161,6 +172,10 @@ export function SiteHeader() {
         const dx = e.clientX - lastX;
         lastX = e.clientX;
         dragDist += Math.abs(dx);
+        if (!spinWhooshPlayed && dragDist > 22) {
+          spinWhooshPlayed = true;
+          playOneShotSfx("whoosh", 0.34, 0.9);
+        }
         group.rotation.y += 0.012 * dx;
         dragVel = 0.012 * dx * 60;
       };
@@ -208,7 +223,6 @@ export function SiteHeader() {
         rafId = requestAnimationFrame(tick);
         if (ctxState.lost || !visible || document.hidden) return;
         const dt = Math.min(clock.getDelta(), 0.1);
-        resize();
         if (!dragging) {
           dragVel *= 0.94;
           const isLoading = document.documentElement.classList.contains("home-loading");
@@ -251,6 +265,13 @@ export function SiteHeader() {
           className="site-header__logo"
           href="/"
           aria-label="Co-Exist"
+          onPointerEnter={() => {
+            const now = performance.now();
+            if (now - lastShimmerRef.current > 2400) {
+              lastShimmerRef.current = now;
+              playOneShotSfx("shimmer", 0.3, 0.7);
+            }
+          }}
         >
           <span ref={fallbackRef} className="site-header__logo-wordmark">
             CO-EXIST

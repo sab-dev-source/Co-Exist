@@ -7,6 +7,9 @@ import {
   createLoopingSfx,
   getAudioContext,
   isSoundEnabled,
+  playConfirmChime,
+  playErrorTone,
+  playOneShotSfx,
   subscribeSoundState,
 } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import {
@@ -166,6 +169,7 @@ function createCloudLayer(
 export function SiteFooter() {
   const cloudsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const lastHeadingShimmerRef = useRef(0);
 
   const [email, setEmail] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -207,10 +211,12 @@ export function SiteFooter() {
 
       renderer = new THREE.WebGLRenderer({
         canvas,
-        antialias: true,
+        antialias: false,
         alpha: true,
+        powerPreference: "high-performance",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      const maxDpr = window.innerWidth < 768 ? 1.25 : 1.5;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       scene = new THREE.Scene();
@@ -321,15 +327,21 @@ export function SiteFooter() {
 
       let lastW = 0;
       let lastH = 0;
+      let cachedLeft = 0;
+      let cachedTopDoc = 0;
 
       const resize = () => {
         if (!renderer) return;
         const rect = cloudsEl.getBoundingClientRect();
         const w = rect.width || 1;
         const h = rect.height || 1;
+        cachedLeft = rect.left;
+        cachedTopDoc = rect.top + window.scrollY;
         if (w === lastW && h === lastH) return;
         lastW = w;
         lastH = h;
+        const maxDpr = window.innerWidth < 768 ? 1.25 : 1.5;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
         renderer.setSize(w, h, false);
         const aspect = w / h;
         camera.left = -aspect;
@@ -378,13 +390,15 @@ export function SiteFooter() {
       const footerEl = cloudsEl.closest(".site-footer");
 
       const handlePointerMove = (e: Event) => {
-        if (!canvas || reducedMotion) return;
+        if (!canvas || reducedMotion || !lastW || !lastH) return;
         const pe = e as PointerEvent;
-        const rect = canvas.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const nx = ((pe.clientX - rect.left) / rect.width) * 2 - 1;
-        const ny = -(((pe.clientY - rect.top) / rect.height) * 2 - 1);
-        targetMouse.set(nx, ny);
+        const localTop = cachedTopDoc - window.scrollY;
+        const nx = ((pe.clientX - cachedLeft) / lastW) * 2 - 1;
+        const ny = -(((pe.clientY - localTop) / lastH) * 2 - 1);
+        targetMouse.set(
+          Math.max(-1, Math.min(1, nx)),
+          Math.max(-1, Math.min(1, ny))
+        );
       };
 
       const handlePointerLeave = () => {
@@ -470,7 +484,8 @@ export function SiteFooter() {
 
   useEffect(() => {
     const cloudsEl = cloudsRef.current;
-    if (!cloudsEl) return;
+    const footerEl = cloudsEl?.closest(".site-footer") as HTMLElement | null;
+    if (!footerEl) return;
 
     const windSfx = createLoopingSfx("wind", 0.28, 700, {
       in: 2.4,
@@ -479,48 +494,37 @@ export function SiteFooter() {
     });
     let hovering = false;
 
+    const startWind = () => {
+      hovering = true;
+      if (!isSoundEnabled()) return;
+      getAudioContext();
+      windSfx.start();
+    };
+
     const stopWind = () => {
       hovering = false;
       windSfx.stop();
     };
 
-    const handlePointerMove = (e: PointerEvent) => {
-      if (!isSoundEnabled()) {
-        if (windSfx.isOn()) stopWind();
-        return;
-      }
-      const rect = cloudsEl.getBoundingClientRect();
-      const inside =
-        rect.height > 0 &&
-        e.clientY >= rect.top &&
-        e.clientY <= rect.bottom &&
-        e.clientX >= rect.left &&
-        e.clientX <= rect.right;
-      if (inside !== hovering) {
-        hovering = inside;
-        if (inside) {
-          getAudioContext();
-          windSfx.start();
-        } else {
-          windSfx.stop();
-        }
-      }
-    };
-
     const unsubscribeSound = subscribeSoundState((on) => {
       if (!on) {
-        stopWind();
+        windSfx.stop();
+      } else if (hovering) {
+        getAudioContext();
+        windSfx.start();
       }
     });
 
-    document.addEventListener("pointermove", handlePointerMove, { passive: true });
+    footerEl.addEventListener("pointerenter", startWind, { passive: true });
+    footerEl.addEventListener("pointerleave", stopWind, { passive: true });
     document.documentElement.addEventListener("pointerleave", stopWind, {
       passive: true,
     });
 
     return () => {
       unsubscribeSound();
-      document.removeEventListener("pointermove", handlePointerMove);
+      footerEl.removeEventListener("pointerenter", startWind);
+      footerEl.removeEventListener("pointerleave", stopWind);
       document.documentElement.removeEventListener("pointerleave", stopWind);
       windSfx.stop();
     };
@@ -531,16 +535,20 @@ export function SiteFooter() {
     const trimmed = email.trim();
     if (!trimmed) {
       setErrorMsg("This field is required.");
+      playErrorTone();
       inputRef.current?.focus();
       return;
     }
     if (!EMAIL_PATTERN.test(trimmed)) {
       setErrorMsg("Please enter a valid email address.");
+      playErrorTone();
       inputRef.current?.focus();
       return;
     }
     setErrorMsg("");
     setSubmitted(true);
+    playConfirmChime();
+    playOneShotSfx("shimmer", 0.42, 0.8);
   };
 
   return (
@@ -548,7 +556,17 @@ export function SiteFooter() {
       <div className="site-footer">
         <div ref={cloudsRef} className="site-footer__clouds" aria-hidden="true" />
         <div id="inner-circle" className="site-footer__newsletter">
-          <h2 className="site-footer__heading" data-graffiti="Inner Circle">
+          <h2
+            className="site-footer__heading"
+            data-graffiti="Inner Circle"
+            onPointerEnter={() => {
+              const now = performance.now();
+              if (now - lastHeadingShimmerRef.current > 2400) {
+                lastHeadingShimmerRef.current = now;
+                playOneShotSfx("shimmer", 0.32, 0.7);
+              }
+            }}
+          >
             Inner Circle
           </h2>
           <div className="site-footer__form site-footer__form--wpforms">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { playOneShotSfx } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import { FIND_PRICE_QUERIES, SITE_ASSETS } from "./data";
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -24,8 +25,9 @@ function getReducedMotionServerSnapshot(): boolean {
 export function FindPriceSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const barRef = useRef<HTMLAnchorElement>(null);
+  const queryRef = useRef<HTMLSpanElement>(null);
+  const lastClockHoverRef = useRef(0);
   const initialQuery = FIND_PRICE_QUERIES[0] ?? "";
-  const [typedQuery, setTypedQuery] = useState<string>(initialQuery);
   const prefersReducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotionSnapshot,
@@ -34,8 +36,13 @@ export function FindPriceSection() {
 
   useEffect(() => {
     const bar = barRef.current;
+    const querySpan = queryRef.current;
     const queries = FIND_PRICE_QUERIES;
-    if (!bar || prefersReducedMotion || queries.length < 2) {
+    if (!bar || !querySpan || queries.length < 2) {
+      return;
+    }
+    if (prefersReducedMotion) {
+      querySpan.textContent = initialQuery;
       return;
     }
 
@@ -62,7 +69,9 @@ export function FindPriceSection() {
 
     const step = (word: string, len: number, dir: 1 | -1) => {
       if (disposed) return;
-      setTypedQuery(word.slice(0, len));
+      if (queryRef.current) {
+        queryRef.current.textContent = word.slice(0, len);
+      }
       if (dir > 0 && len === word.length) {
         schedule(() => step(word, len, -1), 2200);
       } else if (dir < 0 && len === 0) {
@@ -109,9 +118,7 @@ export function FindPriceSection() {
       observer?.disconnect();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [prefersReducedMotion]);
-
-  const displayQuery = prefersReducedMotion ? initialQuery : typedQuery;
+  }, [prefersReducedMotion, initialQuery]);
 
   return (
     <section ref={sectionRef} className="find-price alignfull">
@@ -125,8 +132,22 @@ export function FindPriceSection() {
         />
       </div>
       <h2 className="find-price__title">{"Sign up for\nearly access"}</h2>
-      <a ref={barRef} className="find-price__bar" href="#inner-circle">
-        <span className="find-price__query">{displayQuery}</span>
+      <a
+        ref={barRef}
+        className="find-price__bar"
+        href="#inner-circle"
+        onPointerEnter={() => {
+          const now = performance.now();
+          if (now - lastClockHoverRef.current > 2200) {
+            lastClockHoverRef.current = now;
+            playOneShotSfx("clock", 0.25, 0.55);
+          }
+        }}
+        onClick={() => playOneShotSfx("descent", 0.45, 0.5)}
+      >
+        <span ref={queryRef} className="find-price__query">
+          {initialQuery}
+        </span>
         <span className="find-price__caret" aria-hidden="true" />
         <img
           decoding="async"

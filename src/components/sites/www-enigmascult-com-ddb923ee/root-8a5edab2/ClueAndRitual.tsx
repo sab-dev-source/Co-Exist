@@ -350,9 +350,10 @@ export function ClueAndRitual() {
           canvas,
           alpha: true,
           antialias: true,
+          powerPreference: "low-power",
         });
         const size = btn.clientWidth || 40;
-        r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
         r.setSize(size, size, false);
         r.toneMapping = THREE.ACESFilmicToneMapping;
         renderer = r;
@@ -366,6 +367,10 @@ export function ClueAndRitual() {
         roomEnv = new RoomEnvironment();
         envRT = pmrem.fromScene(roomEnv, 0.04);
         s.environment = envRT.texture;
+        roomEnv.dispose();
+        roomEnv = null;
+        pmrem.dispose();
+        pmrem = null;
 
         const dirLight = new THREE.DirectionalLight(0xffdf90, 2.6);
         dirLight.position.set(2, 3, 4);
@@ -394,10 +399,12 @@ export function ClueAndRitual() {
         if (reducedMotion) return;
 
         const clock = new THREE.Clock();
-        const renderLoop = () => {
+        let lastRenderMs = 0;
+        const renderLoop = (now: number) => {
           if (cancelled) return;
           rafId = window.requestAnimationFrame(renderLoop);
-          if (document.hidden) return;
+          if (document.hidden || now - lastRenderMs < 32) return;
+          lastRenderMs = now;
           const t = clock.getElapsedTime();
           group.rotation.y = 0.6 * t;
           group.position.y = Math.sin(1.4 * t) * maxDim * 0.03;

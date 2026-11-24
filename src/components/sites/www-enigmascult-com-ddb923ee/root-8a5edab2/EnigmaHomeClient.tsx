@@ -28,7 +28,12 @@ export function EnigmaHomeClient() {
 
     gsap.registerPlugin(ScrollTrigger);
 
-    const lenis = new Lenis();
+    const lenis = new Lenis({
+      lerp: 0.1,
+      smoothWheel: true,
+      syncTouch: false,
+      wheelMultiplier: 1,
+    });
     window.__lenis = lenis;
 
     const handleScroll = () => {

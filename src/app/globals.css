@@ -230,50 +230,48 @@ html.has-cursor * {
   cursor: none !important;
 }
 .cursor-ring {
-  border: 1px solid hsla(0, 0%, 98%, 0.75);
-  border-radius: 50%;
   display: grid;
-  height: 34px;
-  left: -17px;
+  height: 76px;
+  left: -38px;
   opacity: 0;
   place-items: center;
   pointer-events: none;
   position: fixed;
-  top: -17px;
+  top: -38px;
+  transition: opacity 0.3s ease;
+  width: 76px;
+  will-change: translate, opacity;
+  z-index: 100005;
+}
+.cursor-ring::before {
+  border: 1.5px solid hsla(0, 0%, 98%, 0.75);
+  border-radius: 50%;
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: scale(0.447);
   transition:
-    width 0.25s ease,
-    height 0.25s ease,
-    top 0.25s ease,
-    left 0.25s ease,
-    opacity 0.3s ease,
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.25s ease,
     border-color 0.25s ease,
-    scale 0.15s ease;
-  width: 34px;
-  will-change: translate;
-  z-index: 100005;
+    box-shadow 0.25s ease;
+  will-change: transform;
 }
 .cursor-ring.is-on {
   opacity: 1;
 }
-.cursor-ring.is-down {
-  scale: 0.8;
+.cursor-ring.is-down::before {
+  transform: scale(0.358);
 }
-.cursor-ring.is-hover {
-  border-color: hsla(0, 0%, 98%, 0.35);
-  height: 52px;
-  left: -26px;
-  top: -26px;
-  width: 52px;
+.cursor-ring.is-hover::before {
+  border-color: hsla(0, 0%, 98%, 0.42);
+  transform: scale(0.684);
 }
-.cursor-ring.is-label {
-  backdrop-filter: blur(2px);
-  background-color: hsla(0, 0%, 4%, 0.55);
+.cursor-ring.is-label::before {
+  background-color: hsla(0, 0%, 4%, 0.78);
   border-color: hsla(0, 0%, 98%, 0.9);
-  height: 76px;
-  left: -38px;
-  top: -38px;
-  width: 76px;
+  border-width: 1px;
+  transform: scale(1);
 }
 .cursor-ring__label {
   color: #f9f9f9;
@@ -282,17 +280,19 @@ html.has-cursor * {
   font-style: italic;
   letter-spacing: 0.14em;
   opacity: 0;
+  position: relative;
   text-transform: uppercase;
   transition: opacity 0.2s ease;
+  z-index: 1;
 }
 .cursor-ring.is-label .cursor-ring__label {
   opacity: 1;
 }
-.cursor-ring.is-blessed {
+.cursor-ring.is-blessed::before {
   border-color: hsla(0, 0%, 100%, 0.95);
   box-shadow: 0 0 12px rgba(212, 168, 88, 0.55);
 }
-.cursor-ring.is-blessed.is-hover {
+.cursor-ring.is-blessed.is-hover::before {
   border-color: hsla(0, 0%, 100%, 0.6);
 }
 .cursor-ring.is-suppressed {
@@ -1364,10 +1364,12 @@ html.menu-open .site-header {
   width: 100%;
 }
 .mystery-box__cover {
+  backface-visibility: hidden;
   left: 0;
   overflow: clip;
   position: absolute;
   width: 100%;
+  will-change: transform;
 }
 .mystery-box__cover--top {
   height: 49.4%;
@@ -1525,9 +1527,12 @@ html.menu-open .site-header {
 .mystery-box__zip-chain {
   background-color: #050505;
   clip-path: inset(0 0 0 0);
+  will-change: clip-path;
 }
 .mystery-box__zip-slider {
+  backface-visibility: hidden;
   clip-path: inset(0 0 0 96.5%);
+  will-change: transform;
 }
 @media (max-width: 781px) {
   .mystery-box__title {

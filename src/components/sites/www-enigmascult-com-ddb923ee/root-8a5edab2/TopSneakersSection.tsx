@@ -12,6 +12,11 @@ import {
   TrendChevronNextIcon,
   TrendChevronPrevIcon,
 } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/icons";
+import {
+  playOneShotSfx,
+  playOneShotSfxCooldown,
+  playSlideTick,
+} from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import { KARACHI_PRODUCTS, SITE_ASSETS, TOP_SNEAKERS } from "./data";
 import type { KarachiProductCategory, KarachiProductItem } from "./types";
 import { useCompactSwipe } from "./useCompactSwipe";
@@ -48,6 +53,18 @@ export function TopSneakersSection() {
 
   const active = TOP_SNEAKERS[activeIndex] ?? TOP_SNEAKERS[0];
 
+  // Warm-cache the 5 spotlight images once idle so hovering rows I-V swaps with 0ms decode hitch
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      TOP_SNEAKERS.forEach((item) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = item.imgSrc;
+      });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const filteredProducts = useMemo(() => {
     if (selectedCategory === "All") return KARACHI_PRODUCTS;
     return KARACHI_PRODUCTS.filter((item) => item.category === selectedCategory);
@@ -76,6 +93,11 @@ export function TopSneakersSection() {
         prevEl,
         nextEl,
       },
+      on: {
+        slideChange() {
+          playSlideTick();
+        },
+      },
       breakpoints: {
         640: {
           slidesPerView: 2.2,
@@ -101,6 +123,7 @@ export function TopSneakersSection() {
     lastFocusedRef.current = document.activeElement as HTMLElement | null;
     setActiveProduct(product);
     setActiveGalleryIdx(0);
+    playOneShotSfx("chest", 0.36, 0.65);
   };
 
   const openProductById = (id: string) => {
@@ -110,6 +133,7 @@ export function TopSneakersSection() {
 
   const closeProductModal = () => {
     setActiveProduct(null);
+    playOneShotSfx("whoosh", 0.24, 0.45);
     const prev = lastFocusedRef.current;
     lastFocusedRef.current = null;
     if (prev && document.contains(prev)) {
@@ -132,6 +156,8 @@ export function TopSneakersSection() {
 
   const selectWithReveal = (idx: number) => {
     const clamped = Math.min(TOP_SNEAKERS.length - 1, Math.max(0, idx));
+    if (clamped === activeIndex && isRevealed) return;
+    playOneShotSfxCooldown("steps", 0.28, 0.4, 140, "karachi-shelf");
     flushSync(() => {
       setIsInstant(true);
       setIsRevealed(false);
@@ -176,7 +202,13 @@ export function TopSneakersSection() {
 
   return (
     <section ref={sectionRef} id="karachi-chapter" className={sectionClasses} data-top-sneakers="">
-      <h2 className="tsneak__title" data-graffiti="Karachi Chapter">
+      <h2
+        className="tsneak__title"
+        data-graffiti="Karachi Chapter"
+        onPointerEnter={() =>
+          playOneShotSfxCooldown("shimmer", 0.32, 0.7, 2400, "karachi-title")
+        }
+      >
         Karachi Chapter
       </h2>
 
@@ -426,7 +458,10 @@ export function TopSneakersSection() {
                       role="tab"
                       aria-selected={idx === activeGalleryIdx}
                       className={`kchapter-modal__thumb${idx === activeGalleryIdx ? " is-active" : ""}`}
-                      onClick={() => setActiveGalleryIdx(idx)}
+                      onClick={() => {
+                        setActiveGalleryIdx(idx);
+                        playSlideTick();
+                      }}
                     >
                       <img
                         src={media.src}

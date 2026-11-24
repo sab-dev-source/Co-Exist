@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { playOneShotSfx } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import { SITE_ASSETS } from "./data";
 
 export function MysteryBoxSection() {
@@ -12,6 +13,7 @@ export function MysteryBoxSection() {
   const zipBtnRef = useRef<HTMLButtonElement>(null);
   const zipChainRef = useRef<HTMLImageElement>(null);
   const zipSliderRef = useRef<HTMLImageElement>(null);
+  const lastTitleShimmerRef = useRef(0);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -27,7 +29,9 @@ export function MysteryBoxSection() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
+      let canPlayUnzip = true;
       let canPlayWhoosh = true;
+      let lastUnzipAt = 0;
       let lastWhooshAt = 0;
 
       const tl = gsap.timeline({
@@ -36,24 +40,32 @@ export function MysteryBoxSection() {
           start: "top top",
           end: "+=150%",
           pin: true,
-          scrub: 1,
+          scrub: true,
+          anticipatePin: 1,
+          fastScrollEnd: true,
           invalidateOnRefresh: true,
           onUpdate(self) {
-            const inWhooshWindow = self.progress > 0.4 && self.progress < 0.75;
-            if (canPlayWhoosh && self.direction > 0 && inWhooshWindow) {
-              const now = performance.now();
+            const p = self.progress;
+            const now = performance.now();
+
+            if (canPlayUnzip && self.direction > 0 && p > 0.05 && p < 0.36) {
+              if (now - lastUnzipAt > 1400) {
+                lastUnzipAt = now;
+                canPlayUnzip = false;
+                playOneShotSfx("chest", 0.45, 0.85);
+              }
+            } else if (!canPlayUnzip && p < 0.03) {
+              canPlayUnzip = true;
+            }
+
+            if (canPlayWhoosh && self.direction > 0 && p > 0.41 && p < 0.75) {
               if (now - lastWhooshAt > 1500) {
                 lastWhooshAt = now;
-                const evt = new CustomEvent("enigma:sfx", {
-                  detail: "whoosh",
-                  cancelable: true,
-                });
-                document.dispatchEvent(evt);
-                if (evt.defaultPrevented) {
-                  canPlayWhoosh = false;
-                }
+                canPlayWhoosh = false;
+                playOneShotSfx("whoosh", 0.72, 1.2);
+                playOneShotSfx("shimmer", 0.34, 0.75);
               }
-            } else if (!canPlayWhoosh && self.progress < 0.35) {
+            } else if (!canPlayWhoosh && p < 0.35) {
               canPlayWhoosh = true;
             }
           },
@@ -84,10 +96,13 @@ export function MysteryBoxSection() {
         className="mystery-box__chest"
         src={SITE_ASSETS.pageImg.mysteryChest}
         alt=""
-        loading="lazy"
         decoding="async"
       />
-      <a className="mystery-box__cta" href="#inner-circle">
+      <a
+        className="mystery-box__cta"
+        href="#inner-circle"
+        onClick={() => playOneShotSfx("descent", 0.48, 0.5)}
+      >
         Join the inner circle
       </a>
       <div ref={coverTopRef} className="mystery-box__cover mystery-box__cover--top">
@@ -103,16 +118,24 @@ export function MysteryBoxSection() {
           src={SITE_ASSETS.pageImg.mysteryTexture}
           alt=""
           aria-hidden="true"
-          loading="lazy"
           decoding="async"
         />
-        <h2 className="mystery-box__title" data-graffiti="Mystery Box">
+        <h2
+          className="mystery-box__title"
+          data-graffiti="Mystery Box"
+          onPointerEnter={() => {
+            const now = performance.now();
+            if (now - lastTitleShimmerRef.current > 2400) {
+              lastTitleShimmerRef.current = now;
+              playOneShotSfx("shimmer", 0.32, 0.7);
+            }
+          }}
+        >
           Mystery B<span className="mystery-box__o">o<img
             className="mystery-box__hand"
             src={SITE_ASSETS.pageImg.mysteryHand}
             alt=""
             aria-hidden="true"
-            loading="lazy"
             decoding="async"
           /></span>x
         </h2>
@@ -130,7 +153,6 @@ export function MysteryBoxSection() {
           src={SITE_ASSETS.pageImg.mysteryTexture}
           alt=""
           aria-hidden="true"
-          loading="lazy"
           decoding="async"
         />
         <div className="mystery-box__copy">

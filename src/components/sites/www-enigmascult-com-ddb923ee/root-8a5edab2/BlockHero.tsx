@@ -6,6 +6,7 @@ import {
   createLoopingSfx,
   getAudioContext,
   isSoundEnabled,
+  playOneShotSfx,
   subscribeSoundState,
 } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import {
@@ -95,6 +96,7 @@ export function BlockHero() {
   const decorRef = useRef<HTMLDivElement | null>(null);
   const fallbackImgRef = useRef<HTMLImageElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastTitleShimmerRef = useRef(0);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -147,21 +149,35 @@ export function BlockHero() {
     let texture: THREE.Texture | null = null;
     let material: THREE.ShaderMaterial | null = null;
     let observer: IntersectionObserver | null = null;
+    let resizeObserver: ResizeObserver | null = null;
     let contextWatcher: { lost: boolean; cleanup: () => void } | null = null;
     let pointerListenersAttached = false;
     let scrollListenersAttached = false;
+    let cleanupLayoutListeners: (() => void) | null = null;
 
     const targetMouse = new THREE.Vector2(0, 0);
     let targetMouseAmt = 0;
     let targetScroll = 0;
     let meshW = 2.68;
     let meshH = 2;
+    let cachedCanvasLeft = 0;
+    let cachedCanvasTop = 0;
+    let cachedCanvasW = 1;
+    let cachedCanvasH = 1;
+    let cachedSectionTop = 0;
+    let cachedVh = 1;
+
+    const measureScrollMetrics = () => {
+      const rect = section.getBoundingClientRect();
+      cachedSectionTop = rect.top + window.scrollY;
+      cachedVh = window.innerHeight || 1;
+    };
 
     const handlePointerMove = (e: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const nx = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const ny = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      if (!cachedCanvasW || !cachedCanvasH) return;
+      const localTop = cachedCanvasTop - window.scrollY;
+      const nx = ((e.clientX - cachedCanvasLeft) / cachedCanvasW) * 2 - 1;
+      const ny = -(((e.clientY - localTop) / cachedCanvasH) * 2 - 1);
       targetMouse.set(nx * (meshW / 2), ny * (meshH / 2));
       targetMouseAmt = 1;
     };
@@ -171,9 +187,8 @@ export function BlockHero() {
     };
 
     const updateScroll = () => {
-      const rect = section.getBoundingClientRect();
-      const vh = window.innerHeight || 1;
-      targetScroll = Math.min(1, Math.max(0, -rect.top / vh));
+      const relTop = cachedSectionTop - window.scrollY;
+      targetScroll = Math.min(1, Math.max(0, -relTop / cachedVh));
     };
 
     const initHeroClouds = async () => {
@@ -188,10 +203,12 @@ export function BlockHero() {
 
       renderer = new THREE.WebGLRenderer({
         canvas,
-        antialias: true,
+        antialias: false,
         alpha: true,
+        powerPreference: "high-performance",
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      const maxDpr = window.innerWidth < 768 ? 1.25 : 1.5;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
 
       scene = new THREE.Scene();
@@ -294,14 +311,24 @@ export function BlockHero() {
         const w = Math.round(imgRect.width) || Math.round(decorRect.width);
         const h = Math.round(imgRect.height) || Math.round(decorRect.height);
 
-        canvas.style.left = `${imgRect.left - decorRect.left}px`;
-        canvas.style.top = `${imgRect.top - decorRect.top}px`;
+        const offsetLeft = Math.round(imgRect.left - decorRect.left);
+        const offsetTop = Math.round(imgRect.top - decorRect.top);
+        canvas.style.left = `${offsetLeft}px`;
+        canvas.style.top = `${offsetTop}px`;
         canvas.style.width = `${w}px`;
         canvas.style.height = `${h}px`;
+
+        cachedCanvasLeft = imgRect.left || decorRect.left;
+        cachedCanvasTop = (imgRect.top || decorRect.top) + window.scrollY;
+        cachedCanvasW = w || 1;
+        cachedCanvasH = h || 1;
+        measureScrollMetrics();
 
         if (w > 0 && h > 0 && (w !== prevW || h !== prevH)) {
           prevW = w;
           prevH = h;
+          const maxDpr = window.innerWidth < 768 ? 1.25 : 1.5;
+          activeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
           activeRenderer.setSize(w, h, false);
           camera.aspect = w / h;
           const meshAspect = meshW / meshH;
@@ -343,9 +370,30 @@ export function BlockHero() {
       });
       pointerListenersAttached = true;
 
+      const handleResize = () => {
+        syncLayout();
+        updateScroll();
+      };
+
       window.addEventListener("scroll", updateScroll, { passive: true });
-      window.addEventListener("resize", updateScroll, { passive: true });
+      window.addEventListener("resize", handleResize, { passive: true });
+      fallbackImg.addEventListener("load", syncLayout);
       scrollListenersAttached = true;
+      cleanupLayoutListeners = () => {
+        window.removeEventListener("resize", handleResize);
+        fallbackImg.removeEventListener("load", syncLayout);
+      };
+
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => {
+          syncLayout();
+          updateScroll();
+        });
+        resizeObserver.observe(decor);
+        resizeObserver.observe(fallbackImg);
+      }
+
+      syncLayout();
       updateScroll();
 
       let isVisible = true;
@@ -356,7 +404,7 @@ export function BlockHero() {
           },
           { threshold: 0 }
         );
-        observer.observe(canvas);
+        observer.observe(section);
       }
 
       const clock = new THREE.Clock();
@@ -372,8 +420,6 @@ export function BlockHero() {
         ) {
           return;
         }
-
-        syncLayout();
 
         uniforms.uTime.value = clock.getElapsedTime();
         uniforms.uMouse.value.lerp(targetMouse, 0.1);
@@ -423,6 +469,7 @@ export function BlockHero() {
       cancelled = true;
       if (rafId) cancelAnimationFrame(rafId);
       observer?.disconnect();
+      resizeObserver?.disconnect();
       contextWatcher?.cleanup();
       if (pointerListenersAttached) {
         section.removeEventListener("pointermove", handlePointerMove);
@@ -430,8 +477,8 @@ export function BlockHero() {
       }
       if (scrollListenersAttached) {
         window.removeEventListener("scroll", updateScroll);
-        window.removeEventListener("resize", updateScroll);
       }
+      cleanupLayoutListeners?.();
       section.removeEventListener("click", handleHeroClick);
       window.clearTimeout(windTimeout);
       unsubscribeSound();
@@ -477,7 +524,17 @@ export function BlockHero() {
           }}
         />
       </div>
-      <h1 className="block-hero__title" data-title={"Decode\nYour Style"}>
+      <h1
+        className="block-hero__title"
+        data-title={"Decode\nYour Style"}
+        onPointerEnter={() => {
+          const now = performance.now();
+          if (now - lastTitleShimmerRef.current > 2400) {
+            lastTitleShimmerRef.current = now;
+            playOneShotSfx("shimmer", 0.34, 0.7);
+          }
+        }}
+      >
         {"Decode\nYour Style"}
       </h1>
       <p className="block-hero__tagline">Created from stunners, for stunners.</p>
@@ -485,6 +542,7 @@ export function BlockHero() {
         className="block-hero__cta"
         href="#karachi-chapter"
         aria-label="Forge Yours — Karachi Chapter"
+        onClick={() => playOneShotSfx("descent", 0.52, 0.5)}
       >
         Forge Yours
       </a>

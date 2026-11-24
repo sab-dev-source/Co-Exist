@@ -4,6 +4,7 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { playOneShotSfx } from "@/components/sites/www-enigmascult-com-ddb923ee/shared/sfx";
 import { SITE_ASSETS } from "./data";
 
 export function ManifestoSection() {
@@ -22,17 +23,34 @@ export function ManifestoSection() {
 
     const ctx = gsap.context(() => {
       const dist = () => Math.max(0, track.scrollWidth - window.innerWidth);
+      let activePanel = 0;
+      let lastWhooshAt = 0;
 
       gsap.to(track, {
         x: () => -dist(),
         ease: "none",
+        force3D: true,
         scrollTrigger: {
           trigger: section,
           start: "top top",
           end: () => `+=${dist()}`,
           pin: true,
-          scrub: 1,
+          scrub: true,
+          anticipatePin: 1,
+          fastScrollEnd: true,
           invalidateOnRefresh: true,
+          onUpdate(self) {
+            const p = self.progress;
+            const nextPanel = p < 0.3 ? 0 : p < 0.7 ? 1 : 2;
+            if (nextPanel !== activePanel) {
+              activePanel = nextPanel;
+              const now = performance.now();
+              if (now - lastWhooshAt > 900) {
+                lastWhooshAt = now;
+                playOneShotSfx("whoosh", 0.34, 1.1);
+              }
+            }
+          },
         },
       });
     }, sectionRef);
@@ -85,28 +103,24 @@ export function ManifestoSection() {
             className="manifesto__img manifesto__img--left"
             src={SITE_ASSETS.pageImg.manifestoLeft}
             alt=""
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--topright"
             src={SITE_ASSETS.pageImg.manifestoTopRight}
             alt=""
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--portrait"
             src={SITE_ASSETS.pageImg.manifestoPortrait}
             alt=""
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__angel"
             src={SITE_ASSETS.pageImg.manifestoAngel}
             alt=""
-            loading="lazy"
             decoding="async"
             aria-hidden="true"
           />
@@ -127,21 +141,18 @@ export function ManifestoSection() {
             className="manifesto__img manifesto__img--art2"
             src={SITE_ASSETS.pageImg.manifestoArt2}
             alt="021 Wat-Tawa — Karachi street chai heritage"
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--art5"
             src={SITE_ASSETS.pageImg.manifestoArt5}
             alt="Co-Exist Heritage Threads Drop 03 collection rack"
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--pill"
             src={SITE_ASSETS.pageImg.manifestoPill}
             alt="Midnight Dhaba KHI 021 circular seal"
-            loading="lazy"
             decoding="async"
           />
           <p className="manifesto__text manifesto__text--b1">
@@ -171,21 +182,18 @@ export function ManifestoSection() {
             className="manifesto__img manifesto__img--yellow"
             src={SITE_ASSETS.pageImg.manifestoYellow}
             alt="Co-Exist 021-RAW monochrome portrait"
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--dunk"
             src={SITE_ASSETS.pageImg.manifestoGreenDunk}
             alt="Unapologetically 021 heavyweight tee and hoodie details"
-            loading="lazy"
             decoding="async"
           />
           <img
             className="manifesto__img manifesto__img--bacchus"
             src={SITE_ASSETS.pageImg.manifestoBacchus}
             alt="Unapologetically 021 classical angel sculpture graphic"
-            loading="lazy"
             decoding="async"
           />
           <p className="manifesto__text manifesto__text--c-intro">

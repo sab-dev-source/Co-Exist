@@ -5,7 +5,10 @@ import {
   getAudioContext,
   initSoundPreference,
   isSoundEnabled,
+  playConfirmChime,
   playOneShotSfx,
+  playUiClickTone,
+  playUiHoverTick,
   setSoundEnabled,
   SFX_CONFIG,
   startHoldableSfx,
@@ -16,7 +19,7 @@ import {
 const COOKIE_STORAGE_KEY = "enigma-cookie-consent";
 const DESCENT_TAIL_STORAGE_KEY = "enigma-descent-tail";
 const SOUND_HINT_DURATION_MS = 6000;
-const SOUND_HINT_TEXT = "Listen close \u2014 sounds hide all over. Find them.";
+const SOUND_HINT_TEXT = "Ambient score active \u2014 sounds hide across every chapter.";
 
 interface CookieConsentPreferences {
   functional: true;
@@ -30,7 +33,14 @@ const VALID_SFX_EVENTS = new Set<SfxName>([
   "shimmer",
   "wind",
   "descent",
+  "chest",
+  "steps",
+  "clock",
+  "gavel",
 ]);
+
+const UI_SFX_SELECTOR =
+  'a, button, [role="button"], [role="tab"], summary, .tsneak__figure';
 
 function readSavedCookieConsent(): {
   saved: boolean;
@@ -217,12 +227,38 @@ export function SoundAndCookies() {
     document.addEventListener("enigma:sfx", handleSfxEvent);
     window.addEventListener("enigma:sfx", handleSfxEvent);
 
+    let lastHoveredEl: Element | null = null;
+    const handleUiPointerOver = (ev: PointerEvent) => {
+      if (!isSoundEnabled() || ev.pointerType === "touch") return;
+      const target = ev.target instanceof Element ? ev.target : null;
+      const interactive = target?.closest(UI_SFX_SELECTOR) ?? null;
+      if (interactive && interactive !== lastHoveredEl) {
+        lastHoveredEl = interactive;
+        playUiHoverTick();
+      } else if (!interactive) {
+        lastHoveredEl = null;
+      }
+    };
+
+    const handleUiClick = (ev: MouseEvent) => {
+      if (!isSoundEnabled()) return;
+      const target = ev.target instanceof Element ? ev.target : null;
+      const interactive = target?.closest(UI_SFX_SELECTOR) ?? null;
+      if (!interactive || interactive.classList.contains("sound-toggle")) return;
+      playUiClickTone();
+    };
+
+    document.addEventListener("pointerover", handleUiPointerOver, { passive: true });
+    document.addEventListener("click", handleUiClick, { passive: true });
+
     return () => {
       cancelled = true;
       unsubscribe();
       cleanupUnlock();
       document.removeEventListener("enigma:sfx", handleSfxEvent);
       window.removeEventListener("enigma:sfx", handleSfxEvent);
+      document.removeEventListener("pointerover", handleUiPointerOver);
+      document.removeEventListener("click", handleUiClick);
       activeTimers.forEach((id) => window.clearTimeout(id));
       activeTimers.clear();
       if (hintTimerRef.current !== null) {
@@ -290,6 +326,7 @@ export function SoundAndCookies() {
     }
 
     if (next) {
+      playConfirmChime();
       setHintShown(true);
       hintTimerRef.current = window.setTimeout(() => {
         setHintShown(false);
